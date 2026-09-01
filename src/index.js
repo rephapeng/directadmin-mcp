@@ -395,6 +395,37 @@ tool(
 );
 
 tool(
+  "da_system_info",
+  {
+    title: "Server system info",
+    description:
+      "Hardware and OS details of the server: CPU model and count, clock speed, kernel and distribution.",
+    inputSchema: {},
+  },
+  async () => text(await da.get("/CMD_API_SYSTEM_INFO")),
+);
+
+tool(
+  "da_license",
+  {
+    title: "DirectAdmin license",
+    description:
+      "License details including the expiry date and account limits. Useful for catching a licence that is about to lapse.",
+    inputSchema: {},
+  },
+  async () => {
+    const lic = await da.get("/api/license");
+    // Surface days-to-expiry rather than making the caller parse the date.
+    let days_until_expiry = null;
+    if (lic?.expires) {
+      const ms = new Date(lic.expires).getTime() - Date.now();
+      if (Number.isFinite(ms)) days_until_expiry = Math.floor(ms / 86400000);
+    }
+    return text({ ...lic, days_until_expiry });
+  },
+);
+
+tool(
   "da_get",
   {
     title: "Raw read-only API call",
